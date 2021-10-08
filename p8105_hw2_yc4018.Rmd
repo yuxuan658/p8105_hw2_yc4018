@@ -1,0 +1,19 @@
+---
+title: "p8105_hw2_yc4018"
+author: "Yuxuan Chen"
+date: "10/8/2021"
+output: github_document
+---
+**Problem1**
+```{r message = FALSE}
+library(readxl)
+library(tidyverse)
+
+trashwheel_df = 
+  read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N535") %>% #Read the excel file
+  janitor::clean_names() %>% #clean variables' names
+  drop_na(dumpster) %>% #drops rows having values equal to NA
+  mutate(sports_balls = round(sports_balls)) #round the number of sports balls to the nearest integer
+
+```
+
