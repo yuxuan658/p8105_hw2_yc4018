@@ -12,8 +12,31 @@ library(tidyverse)
 trashwheel_df = 
   read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N535") %>% #Read the excel file
   janitor::clean_names() %>% #clean variables' names
-  drop_na(dumpster) %>% #drops rows having values equal to NA
+  drop_na(dumpster) %>% #drops rows in column `dumpster` having values equal to NA
   mutate(sports_balls = round(sports_balls)) #round the number of sports balls to the nearest integer
-
 ```
+
+
+```{r}
+precipitation2018_df = 
+  read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2018 Precipitation", range = "A2:B15") %>% 
+  janitor::clean_names() %>% #clean variables' names
+  drop_na(month) %>%  #omit rows without precipitation data
+  mutate(year = "2018") #add an variable for year
+
+
+precipitation2019_df = 
+  read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2019 Precipitation", range = "A2:B15") %>% 
+  janitor::clean_names() %>% #clean variables' names
+  drop_na(month) %>%  #omit rows without precipitation data
+  mutate(year = "2019") #add an variable for year
+
+precipitation_df = 
+  bind_rows(precipitation2018_df, precipitation2019_df) %>% 
+  mutate(month = month.name[month])
+precipitation_df
+```
+
+
+
 
