@@ -8,35 +8,60 @@ output: github_document
 ```{r message = FALSE}
 library(readxl)
 library(tidyverse)
+```
 
+```{r warning = FALSE, collapse = TRUE}
 trashwheel_df = 
   read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N535") %>% #Read the excel file
   janitor::clean_names() %>% #clean variables' names
-  drop_na(dumpster) %>% #drops rows in column `dumpster` having values equal to NA
+  transform(dumpster = as.numeric(dumpster)) %>% 
+  drop_na(dumpster) %>% 
   mutate(sports_balls = round(sports_balls)) #round the number of sports balls to the nearest integer
+
+knitr::kable(trashwheel_df[0:10,])
 ```
 
-
-```{r}
+```{r collapse = TRUE}
 precipitation2018_df = 
   read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2018 Precipitation", range = "A2:B15") %>% 
   janitor::clean_names() %>% #clean variables' names
   drop_na(month) %>%  #omit rows without precipitation data
   mutate(year = "2018") #add an variable for year
-
+knitr::kable(precipitation2018_df)
 
 precipitation2019_df = 
   read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2019 Precipitation", range = "A2:B15") %>% 
   janitor::clean_names() %>% #clean variables' names
   drop_na(month) %>%  #omit rows without precipitation data
   mutate(year = "2019") #add an variable for year
+knitr::kable(precipitation2019_df)
 
 precipitation_df = 
   bind_rows(precipitation2018_df, precipitation2019_df) %>% 
   mutate(month = month.name[month])
-precipitation_df
+knitr::kable(precipitation_df)
+
 ```
 
+inline R. Be sure to note the number of observations in both resulting datasets, and give examples of key variables. For available data, what was the total precipitation in 2018? What was the median number of sports balls in a dumpster in 2019?
+
+From the Mr. Trash Wheel dataset, trashwheel_df, there are total `r nrow(trashwheel_df)` obsesrvations. For example, 
+From the combined precipitation dataset, precipitation_df, there are `r nrow(precipitation_df)` observations.
 
 
+**Problem2**
+
+I found there are five values of "2" for observations in "prez_gop", which are assumed to be typographical error and the "2" means "1". Hence, whenever there are "0" value in prez_dem imply the president was not democratic, but republican.
+```{r message=FALSE, collapse=TRUE}
+polsmonth_df = 
+  read_csv("./data/pols-month.csv") %>% 
+  janitor::clean_names() %>% #clean the data
+  separate(mon, into = c("year", "month", "day")) %>% #break up one variable into three variables;
+  transform(
+    year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%  #convert these variables to integer variables
+  mutate(month = month.name[month]) %>% #replace month number with month name
+  mutate(president = recode(prez_dem, '1' = "dem", '0' = "gop")) %>% #create president variable taking values gop and dem
+  select(-c("prez_dem", "prez_gop","day")) #remove prez_dem, prez_gop, day variable
+knitr::kable(polsmonth_df[0:10,])
+```
 
