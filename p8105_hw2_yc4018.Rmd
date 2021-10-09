@@ -8,6 +8,7 @@ output: github_document
 ```{r message = FALSE}
 library(readxl)
 library(tidyverse)
+library(lubridate)
 ```
 
 ```{r warning = FALSE, collapse = TRUE}
@@ -55,13 +56,27 @@ I found there are five values of "2" for observations in "prez_gop", which are a
 ```{r message=FALSE, collapse=TRUE}
 polsmonth_df = 
   read_csv("./data/pols-month.csv") %>% 
-  janitor::clean_names() %>% #clean the data
-  separate(mon, into = c("year", "month", "day")) %>% #break up one variable into three variables;
-  transform(
-    year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%  #convert these variables to integer variables
+  janitor::clean_names() %>% #clean the names
+  separate(mon, into = c("year", "month", "day"), convert = TRUE) %>% 
+      #break up one variable into three integer variables; convert=TRUE: detects column classes
   mutate(month = month.name[month]) %>% #replace month number with month name
   mutate(president = recode(prez_dem, '1' = "dem", '0' = "gop")) %>% #create president variable taking values gop and dem
   select(-c("prez_dem", "prez_gop","day")) #remove prez_dem, prez_gop, day variable
 knitr::kable(polsmonth_df[0:10,])
 ```
 
+```{r}
+snp_df = 
+  read_csv("./data/snp.csv") %>% 
+  janitor::clean_names() %>%  #clean the names
+  mutate(date = parse_date_time2(date, "mdy", cutoff_2000 = 49)) %>% #change date-time format
+  separate(date, into = c('year', 'month', 'day'), convert = TRUE) %>% 
+  arrange(year, month) %>% 
+  mutate(month = month.name[month]) %>% 
+  select(-day) %>% 
+  relocate(year, month) #let year and month be leading columns
+
+knitr::kable(snp_df[0:10,]) 
+```
+
+Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
