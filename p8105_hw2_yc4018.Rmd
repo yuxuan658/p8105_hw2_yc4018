@@ -52,8 +52,7 @@ From the combined precipitation dataset, precipitation_df, there are `r nrow(pre
 
 
 **Problem2**
-
-I found there are five values of "2" for observations in "prez_gop", which are assumed to be typographical error and the "2" means "1". Hence, whenever there are "0" value in prez_dem imply the president was not democratic, but republican.
+1) read and clean pols-month.csv:
 ```{r message=FALSE, collapse=TRUE}
 polsmonth_df = 
   read_csv("./data/pols-month.csv") %>% 
@@ -65,7 +64,9 @@ polsmonth_df =
   select(-c("prez_dem", "prez_gop","day")) #remove prez_dem, prez_gop, day variable
 knitr::kable(polsmonth_df[0:10,])
 ```
+ - I found there are five values of "2" for observations in "prez_gop", which are assumed to be typographical error and the "2" means "1". Hence, whenever there are "0" value in prez_dem imply the president was not democratic, but republican.
 
+2) read and clean snp.csv
 ```{r message=FALSE}
 snp_df = 
   read_csv("./data/snp.csv") %>% 
@@ -80,23 +81,31 @@ snp_df =
 knitr::kable(snp_df[0:10,]) 
 ```
 
-Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
-Join the datasets by merging snp into pols, and merging unemployment into the result.
-
+3) read, clean, and tidy unemployment.csv:
 ```{r message=FALSE}
 unemployment_df = 
   read_csv("./data/unemployment.csv") %>% 
   janitor::clean_names() %>% 
   pivot_longer(
-    jan:dec, #specify the range of variables(columns)
+    jan:dec, #specify the range of variables
     names_to = "month", #name the new variable as "month"
-    values_to = "unemployment_data" #put all values into a new variable named "unemployment_data"
-  )
-  
+    values_to = "unemployment_data") %>%  #put all values into a new variable named "unemployment_data"
+  drop_na(unemployment_data) %>% 
+  mutate(month = match(str_to_title(month), month.abb)) %>% #capitalize first letter of values in month, and match them to the month abbreviation
+  mutate(month = month.name[month])
+knitr::kable(unemployment_df[0:10,]) 
 ```
 
+4) merging snp into pols, then merging unemployment into the result：
+```{r}
+pols_snp_df = 
+  left_join(polsmonth_df, snp_df, by = c("year", "month")) #merge by "year", and "month"
 
+pols_snp_unemp_df =
+  left_join(pols_snp_df, unemployment_df, by = c("year", "month"))
+knitr::kable(pols_snp_unemp_df[0:10,]) 
 
+```
 
 
 
