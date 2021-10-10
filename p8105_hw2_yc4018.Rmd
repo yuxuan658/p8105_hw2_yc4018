@@ -4,13 +4,13 @@ author: "Yuxuan Chen"
 date: "10/8/2021"
 output: github_document
 ---
-**Problem1**
+**Problem1**   
 ```{r message=FALSE}
 library(readxl)
 library(tidyverse)
 library(lubridate)
 ```
-
+1) Read and clean the Mr. Trash Wheel sheet:
 ```{r warning=FALSE, collapse=TRUE}
 trashwheel_df = 
   read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N535") %>% #Read the excel file
@@ -21,7 +21,7 @@ trashwheel_df =
 
 knitr::kable(trashwheel_df[0:10,])
 ```
-
+2) Read and clean precipitation data for 2018 and 2019
 ```{r collapse=TRUE}
 precipitation2018_df = 
   read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2018 Precipitation", range = "A2:B15") %>% 
@@ -37,6 +37,7 @@ precipitation2019_df =
   mutate(year = "2019") #add an variable for year
 knitr::kable(precipitation2019_df)
 
+#combine precipitation data for 2018 and 2019
 precipitation_df = 
   bind_rows(precipitation2018_df, precipitation2019_df) %>% 
   mutate(month = month.name[month])
@@ -44,14 +45,20 @@ knitr::kable(precipitation_df)
 
 ```
 
-**interpretation**
-inline R. Be sure to note the number of observations in both resulting datasets, and give examples of key variables. For available data, what was the total precipitation in 2018? What was the median number of sports balls in a dumpster in 2019?
+3) Datasets Interpretation
+```{r collapse=TRUE}
+#Total precipitation in 2018
+sum(pull(precipitation2018_df,total))
 
-From the Mr. Trash Wheel dataset, trashwheel_df, there are total `r nrow(trashwheel_df)` obsesrvations. For example, 
-From the combined precipitation dataset, precipitation_df, there are `r nrow(precipitation_df)` observations.
+#median number of sports balls in a dumpster in 2019
+sports_balls2019 = filter(trashwheel_df, year == 2019)
+median(pull(sports_balls2019, sports_balls))
+```
+ - After read and clean the Mr. Trash Wheel sheet, I have a resulting dataset named trashwheel_df. The trashwheel_df dataset contains 453 observations of 14 variables. The dimension of this dataset is (`r dim(trashwheel_df)`). The range of the year is (`r range(pull(trashwheel_df, year))`). I think dumpster, date, weight_tons, volume_cubic_yards are key variables, since they gives the information on dumpter number, date of collection, amount weight of total litter, and amount volume of total litter.  
+ - After read, clean, and combine precipitation data for 2018 and 2019, I have a resulting dataset named precipitation_df. The precipitation_df contains 24 observations of 3 variables. The dimension of this dataset is (`r dim(precipitation_df)`). The range of the year is (`r range(pull(precipitation_df, year))`). I think key variable is the total variable, since it shows the precipitation amounts on the associated month and year.
+ - Based on the above calculations, the total precipitation in 2018 is 70.33; and the median number of sports balls in a dumpster in 2019 is 9.
 
-
-**Problem2**
+**Problem2**   
 1) read and clean pols-month.csv:
 ```{r message=FALSE, collapse=TRUE}
 polsmonth_df = 
@@ -89,8 +96,8 @@ unemployment_df =
   pivot_longer(
     jan:dec, #specify the range of variables
     names_to = "month", #name the new variable as "month"
-    values_to = "unemployment_data") %>%  #put all values into a new variable named "unemployment_data"
-  drop_na(unemployment_data) %>% 
+    values_to = "unemployment_rate") %>%  #put all values into a new variable named "unemployment_rate"
+  drop_na(unemployment_rate) %>% 
   mutate(month = match(str_to_title(month), month.abb)) %>% #capitalize first letter of values in month, and match them to the month abbreviation
   mutate(month = month.name[month])
 knitr::kable(unemployment_df[0:10,]) 
@@ -107,13 +114,14 @@ knitr::kable(pols_snp_unemp_df[0:10,])
 
 ```
 
+5) Dataset Interpretation:   
+ - The polsmonth_df dataset contains 822 observations of 9 variables related to the number of national politicians who are democratic or republican from January, 1947 to June, 2015, and indicates whether the president was Democratic or Republican on the associated date. The dimension of this dataset is (`r dim(polsmonth_df)`). The range of the year is (`r range(pull(polsmonth_df, year))`). The key variables are the president’s party and the number of Republican and Democratic governors, senators, and representatives on the associated month and year.    
+ - The snp_df dataset contains 787 observations of 3 variables related to Standard & Poor’s stock market index (S&P). The dimension of this dataset is (`r dim(snp_df)`). The range of the year is (`r range(pull(snp_df, year))`). The key variables are the closing values of the S&P stock index on the associated month and year. The names of key variables are: year, month, and the closing values of the S&P stock index.
+ - The unemployment_df dataset contains 810 observations of 3 variables. The dimension of this dataset is (`r dim(unemployment_df)`). The range of the year is (`r range(pull(unemployment_df, year))`). The key variables are the percentage of unemployment in every month of the associated year. The names of key variables are: year, month, and unemployment_rate. 
+ - The pols_snp_unemp_df is the merged dataset after combining polsmonth_df, snp_df, and unemployment_df The dimension of this dataset is (`r dim(pols_snp_unemp_df)`). The range of the year is (`r range(pull(pols_snp_unemp_df, year))`). These dataset has the same dimension as the polsmonth_df dataset, since I used `left_join()` function to merge snp_df and unemployment_df into polsmonth_df. The key variables are the president’s party, closing values of the S&P stock index, and percentage of unemployment on the associated month and year. The names of key variables are: president, close, unemployment_rate.    
 
-5) **interpretation**
-Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
-
-**Problem 3**
-1) 
- - read, clean, and tidy Popular_Baby_Names.csv
+**Problem 3**   
+1) read, clean, and tidy Popular_Baby_Names.csv
 ```{r}
 babynames_df = 
   read.csv("./data/Popular_Baby_Names.csv") %>% 
@@ -145,6 +153,7 @@ babynames_df =
 babynames_df = 
   babynames_df %>% 
   distinct(year_of_birth, gender, ethnicity, childs_first_name, count, rank, .keep_all = TRUE)
+knitr::kable(babynames_df[0:10,]) 
 ```
 
 2) well-structured, reader-friendly table ----pivor_wider!
